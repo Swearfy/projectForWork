@@ -1,93 +1,95 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from "pixi.js";
 
-const app = new PIXI.Application({
+const MainApp = () => {
+  // App
+  const app = new PIXI.Application<HTMLCanvasElement>({
     width: 600,
-    height:400,
-    background:'#000000',
-});
+    height: 400,
+    background: "#000000",
+  });
 
-const bg = new PIXI.Sprite(PIXI.Texture.WHITE)
-bg.width = app.view.width;
-bg.height = app.view.height;
-bg.tint = '#000000'
+  document.body.appendChild(app.view);
 
-bg.eventMode = 'static';
-bg.cursor = 'pointer'
-bg.on('pointerdown', function(e){
-  generateShape(e.clientX,e.clientY)
-  
-});
-app.stage.addChild(bg)
+  const gravity = 1;
+  const shapes = ShapesFactory(app, gravity);
 
-document.body.appendChild(app.view)
- 
+  // Background init
+  const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
+  bg.width = app.view.width;
+  bg.height = app.view.height;
+  bg.tint = "#000000";
 
+  // Background event
+  bg.eventMode = "static";
+  bg.cursor = "pointer";
+  bg.on("pointerdown", (e) => {
+    shapes.genShape(e.clientX, e.clientY);
+  });
 
+  app.stage.addChild(bg);
 
-const gravity = 1
+  let genRate = 1;
+  let passedTime = 0;
 
-let shapesArray:PIXI.Graphics[] = []
+  // Main Loop
+  app.ticker.add((delta) => {
+    if (Date.now() > passedTime) {
+      passedTime = Date.now() + 1000 / genRate;
 
+      shapes.genShape();
+    }
+    shapes.update(delta);
+  });
+};
 
+const ShapesFactory = (app: PIXI.Application, gravity: number) => {
+  let shapesArray: PIXI.Graphics[] = [];
 
-const generateShape = (x = Math.random()* app.view.width,y = -100) => {
-  const circle = new PIXI.Graphics();
+  const genShape = (x = Math.random() * app.view.width, y = -100) => {
+    const shape = new PIXI.Graphics();
+    shape.beginFill("#FFFFFF").drawCircle(0, 0, 50).endFill();
 
-  circle.beginFill("#FFFFFF").drawCircle(0, 0, 50).endFill();
-  circle.position.set(x, y);
+    // Check to see if the shape would render outside of app view
+    if (x - shape.width / 2 < 0 || x + shape.width / 2 > app.view.width) {
+      genShape();
+      return;
+    }
 
-  circle.eventMode = 'static'
-  circle.cursor = 'none'
+    shape.position.set(x, y);
 
-  shapesArray.push(circle);
-}
+    // Shape event
+    shape.eventMode = "static";
+    shape.cursor = "pointer";
+    shape.on("click", () => {
+      removeShape(shape);
+    });
 
+    shapesArray.push(shape);
+  };
 
-let spawnInterval = 1;
-let passedTime = 0;
-// generateShape()
+  const update = (delta: number) => {
+    for (let i = 0; i < shapesArray.length; i++) {
+      const shape = shapesArray[i];
 
-app.ticker.add((delta)=>{
+      app.stage.addChild(shape);
+      shape.y += gravity * delta;
 
-    // if (Date.now() > passedTime) {
-    //     passedTime = Date.now() + 1000 / spawnInterval;
-    //     generateShape()
-    //   }
-    
-  
-    
-    for(let i = 0; i < shapesArray.length; i++){
-      const shape = shapesArray[i]
+      // Remove shape once out of bound from bottom
+      if (shape.y - shape.height / 2 > app.view.height) {
+        removeShape(shape);
+      }
+    }
+  };
 
-      
-      
-      app.stage.addChild(shape)
-        shape.y += gravity * delta
-        console.log(shape.y);
-        
-        if (checkOutOfContainer(shape)){
-        removeShape(shapesArray,shape)
-        
-       } 
-        
-        }
+  const removeShape = (shape: PIXI.Graphics) => {
+    app.stage.removeChild(shape);
+    let i = shapesArray.indexOf(shape);
+    if (shapesArray[i]) {
+      shapesArray.splice(i, 1);
+    }
+  };
 
+  return { update, genShape };
+};
 
-})
-
-
-function checkOutOfContainer(shape:PIXI.Graphics){
-  
-  
-  if  (shape.y - (shape.height/2) > app.view.height )  //radius 
-  {
-    return true
-  }else
-      return false
-}
-
-export function removeShape(arr:PIXI.Graphics[], elm:PIXI.Graphics) {
-    app.stage.removeChild(elm)
-    let i = arr.indexOf(elm);
-    return arr.splice(i, 1);
-  }
+MainApp();
