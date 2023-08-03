@@ -28,14 +28,14 @@ const UI = () => {
     const plusButton = document.createElement("button");
     plusButton.textContent = `+1`;
 
-    minusButton.addEventListener("pointertap", () => {
+    minusButton.addEventListener("click", () => {
       if (x.value > x.limit) {
         x.value -= 1;
         display.textContent = `${x.text} ${x.value}`;
       }
     });
 
-    plusButton.addEventListener("pointertap", () => {
+    plusButton.addEventListener("click", () => {
       if (x.value >= x.limit) {
         x.value += 1;
         display.textContent = `${x.text} ${x.value}`;
