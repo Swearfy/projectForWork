@@ -52,8 +52,6 @@ const MainApp = () => {
     let gravity = gravityDetails.value;
     let genRate = spawnRate.value;
 
-    console.log(genRate);
-
     if (genRate >= 1) {
       if (Date.now() > passedTime) {
         passedTime = Date.now() + 1000 / genRate;
