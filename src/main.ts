@@ -1,17 +1,19 @@
 import * as PIXI from "pixi.js";
+import UI from "./ui";
+import ShapesFactory from "./shapeFactory";
 
 const MainApp = () => {
   // App
   const app = new PIXI.Application<HTMLCanvasElement>({
-    width: 600,
-    height: 400,
+    width: 1600,
+    height: 600,
     background: "#000000",
   });
 
   document.body.appendChild(app.view);
 
-  const gravity = 1;
-  const shapes = ShapesFactory(app, gravity);
+  const ui = UI();
+  const shapes = ShapesFactory(app, ui);
 
   // Background init
   const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
@@ -28,68 +30,39 @@ const MainApp = () => {
 
   app.stage.addChild(bg);
 
-  let genRate = 1;
-  let passedTime = 0;
+  const gravityDetails = {
+    id: "gravity",
+    text: "Current Gravity",
+    value: 1,
+  };
+  const spawnRate = {
+    id: "spawnRate",
+    text: "Current Spawn Rate per second",
+    value: 1,
+    limit: 0,
+  };
 
+  ui.genButtonBox(gravityDetails);
+  ui.genButtonBox(spawnRate);
+
+  let passedTime = 0;
   // Main Loop
   app.ticker.add((delta) => {
-    if (Date.now() > passedTime) {
-      passedTime = Date.now() + 1000 / genRate;
+    let gravity = gravityDetails.value;
+    let genRate = spawnRate.value;
 
-      shapes.genShape();
-    }
-    shapes.update(delta);
-  });
-};
+    if (genRate >= 1) {
+      if (Date.now() > passedTime) {
+        passedTime = Date.now() + 1000 / genRate;
 
-const ShapesFactory = (app: PIXI.Application, gravity: number) => {
-  let shapesArray: PIXI.Graphics[] = [];
-
-  const genShape = (x = Math.random() * app.view.width, y = -100) => {
-    const shape = new PIXI.Graphics();
-    shape.beginFill("#FFFFFF").drawCircle(0, 0, 50).endFill();
-
-    // Check to see if the shape would render outside of app view
-    if (x - shape.width / 2 < 0 || x + shape.width / 2 > app.view.width) {
-      genShape();
-      return;
-    }
-
-    shape.position.set(x, y);
-
-    // Shape event
-    shape.eventMode = "static";
-    shape.cursor = "pointer";
-    shape.on("click", () => {
-      removeShape(shape);
-    });
-
-    shapesArray.push(shape);
-  };
-
-  const update = (delta: number) => {
-    for (let i = 0; i < shapesArray.length; i++) {
-      const shape = shapesArray[i];
-
-      app.stage.addChild(shape);
-      shape.y += gravity * delta;
-
-      // Remove shape once out of bound from bottom
-      if (shape.y - shape.height / 2 > app.view.height) {
-        removeShape(shape);
+        if (gravity > 0) {
+          shapes.genShape();
+        }
       }
     }
-  };
 
-  const removeShape = (shape: PIXI.Graphics) => {
-    app.stage.removeChild(shape);
-    let i = shapesArray.indexOf(shape);
-    if (shapesArray[i]) {
-      shapesArray.splice(i, 1);
-    }
-  };
-
-  return { update, genShape };
+    shapes.update(delta, gravity);
+  });
 };
 
 MainApp();
