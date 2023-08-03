@@ -34,6 +34,7 @@ const MainApp = () => {
     id: "gravity",
     text: "Current Gravity",
     value: 1,
+    limit: 0,
   };
   const spawnRate = {
     id: "spawnRate",

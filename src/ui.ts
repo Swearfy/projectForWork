@@ -19,7 +19,7 @@ const UI = () => {
     id: string;
     text: string;
     value: number;
-    limit?: number;
+    limit: number;
   }) => {
     const box = document.createElement("div");
     const minusButton = document.createElement("button");
@@ -29,24 +29,14 @@ const UI = () => {
     plusButton.textContent = `+1`;
 
     minusButton.addEventListener("pointertap", () => {
-      if (!x.limit === null) {
-        if (x.value > x.limit) {
-          x.value -= 1;
-          display.textContent = `${x.text} ${x.value}`;
-        }
-      } else {
+      if (x.value > x.limit) {
         x.value -= 1;
         display.textContent = `${x.text} ${x.value}`;
       }
     });
 
     plusButton.addEventListener("pointertap", () => {
-      if (x.limit) {
-        if (x.value >= x.limit) {
-          x.value += 1;
-          display.textContent = `${x.text} ${x.value}`;
-        }
-      } else {
+      if (x.value >= x.limit) {
         x.value += 1;
         display.textContent = `${x.text} ${x.value}`;
       }
