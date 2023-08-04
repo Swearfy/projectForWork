@@ -1,18 +1,19 @@
 import * as PIXI from "pixi.js";
 import UI from "./ui";
 import ShapesFactory from "./shapeFactory";
+import "./styles/style.scss";
 
 const MainApp = () => {
   // App
   const app = new PIXI.Application<HTMLCanvasElement>({
-    width: 1600,
-    height: 600,
+    width: window.innerWidth,
+    height: (window.innerHeight * 75) / 100,
     background: "#000000",
   });
 
   document.body.appendChild(app.view);
 
-  const ui = UI();
+  const ui = UI(app);
   const shapes = ShapesFactory(app, ui);
 
   // Background init
@@ -25,7 +26,7 @@ const MainApp = () => {
   bg.eventMode = "static";
   bg.cursor = "pointer";
   bg.on("pointerdown", (e) => {
-    shapes.genShape(e.clientX, e.clientY);
+    shapes.genShape(e.clientX, e.clientY - 50);
   });
 
   app.stage.addChild(bg);

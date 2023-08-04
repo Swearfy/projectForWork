@@ -1,14 +1,19 @@
+import * as PIXI from "pixi.js";
+
 // App UI
-const UI = () => {
+const UI = (app: PIXI.Application) => {
+  const areaOfCanvas = app.view.width * app.view.height;
+
   // Container
   const uiBox = document.createElement("div");
+  uiBox.classList.add("uiBox");
 
   const displayNumberOfShapes = document.createElement("a");
   const displaySurfaceArea = document.createElement("a");
 
   // Placeholder Text
-  displayNumberOfShapes.textContent = `Number of shapes ${0}`;
-  displaySurfaceArea.textContent = `Area taken by shapes`;
+  displayNumberOfShapes.textContent = `No of Shapes: ${0}`;
+  displaySurfaceArea.textContent = `Area used ${0} px^2, Total area ${areaOfCanvas} px^2`;
 
   uiBox.append(displayNumberOfShapes, displaySurfaceArea);
 
@@ -42,18 +47,23 @@ const UI = () => {
       }
     });
 
+    const buttonBox = document.createElement("div");
+
+    buttonBox.append(minusButton, plusButton);
+
     const display = document.createElement("a");
     display.textContent = `${x.text} ${x.value}`;
-    display.id = x.id;
+    box.id = x.id;
 
-    box.append(display, minusButton, plusButton);
+    box.append(display, buttonBox);
+    box.classList.add("controllsWrapper");
     document.body.after(box);
   };
 
   // update main ui
-  const updateUI = (numberOfShapes: number) => {
-    displayNumberOfShapes.textContent = `Number of shapes ${numberOfShapes.toString()}`;
-    displaySurfaceArea.textContent = `Area taken by shapes`;
+  const updateUI = (numberOfShapes: number, totalTakenArea: string) => {
+    displayNumberOfShapes.textContent = `No of Shapes: ${numberOfShapes}`;
+    displaySurfaceArea.textContent = `Area used ${totalTakenArea} px^2, Total area ${areaOfCanvas} px^2`;
   };
 
   return {
