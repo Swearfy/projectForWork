@@ -1,5 +1,11 @@
 import * as PIXI from "pixi.js";
 import "@pixi/graphics-extras";
+import { Circle } from "./shapes/Circle";
+import { Shape } from "./shape";
+import { Triangle } from "./shapes/Triangle";
+import { Rectangle } from "./shapes/Rectangle";
+import { Polygon } from "./shapes/Polygon";
+import { Ellipse } from "./shapes/Ellipse";
 
 const ShapesFactory = (
   app: PIXI.Application,
@@ -7,7 +13,7 @@ const ShapesFactory = (
     updateUI: (numberOfShapes: number, totalTakenArea: string) => void;
   }
 ) => {
-  let shapesArray: { shape: PIXI.Graphics; area: number }[] = [];
+  let shapesArray: Shape[] = [];
 
   const shapeList: string[] = [
     "circle",
@@ -47,57 +53,33 @@ const ShapesFactory = (
     shape.lineTo(x + radius * Math.cos(0), y + radius * Math.sin(0));
   };
 
-  let areaOfShape: number;
   const genShape = (x = Math.random() * app.view.width, y = -100) => {
     const randomIndex = Math.floor(Math.random() * shapeList.length);
-    let shapeName = shapeList[randomIndex];
-    let shape = new PIXI.Graphics();
-    let color =
-      "#" + ((Math.random() * 0xffffff) << 0).toString(16).padStart(6, "0");
-    if (color) {
-      shape.beginFill(color, 1);
-    }
+    let shapeName = "5sides";
+    let shape = new Shape(x, y);
 
     switch (shapeName) {
       case "circle":
-        shape.drawCircle(0, 0, 25);
-        shape.position.set(x, y);
-        areaOfShape = Math.PI * Math.pow(shape.width / 2, 2);
+        shape = new Circle(x, y, 25);
 
         break;
       case "triangle":
-        let triangleWidth = 50;
-        let triangleHeight = 50;
-        let triangleHalf = triangleWidth / 2;
-        let triangleYHalf = triangleHeight / 2;
-
-        shape.moveTo(triangleWidth, 0);
-        shape.lineTo(triangleHalf, triangleHeight);
-        shape.lineTo(0, 0);
-        shape.lineTo(triangleHalf, 0);
-
-        shape.position.set(x - triangleHalf, y - triangleYHalf);
+        shape = new Triangle(x, y, 25, 25);
         break;
 
       case "4sides":
-        shape.drawRect(0, 0, 50, 50);
-        shape.position.set(x - shape.width / 2, y);
-        areaOfShape = shape.height * shape.width;
+        shape = new Rectangle(x, y, 25, 25);
         break;
       case "5sides":
-        drawPolygon(shape, 5, x, y);
-        areaOfShape =
-          Math.pow(((5 / 4) * shape.width) / 2, 2) *
-          (1 / Math.tan(Math.PI / 5));
+        shape = new Polygon(x, y, 5, 25);
+        // shape.shape.drawShape(new PIXI.Polygon());
         break;
       case "6sides":
-        drawPolygon(shape, 6, x, y);
-        areaOfShape = (3 * Math.sqrt(3) * Math.pow(shape.width / 2, 2)) / 2;
+        shape = new Polygon(x, y, 6, 25);
+
         break;
       case "ellipse":
-        shape.drawEllipse(0, 0, 25, 16);
-        shape.position.set(x, y);
-        areaOfShape = (((Math.PI * shape.width) / 2) * shape.height) / 2;
+        shape = new Ellipse(x, y, 25, 16);
         break;
       // case "star":
       //   shape.drawStar(0, 0, 5, 15, 25);
@@ -106,12 +88,12 @@ const ShapesFactory = (
       default:
         break;
     }
-    shape.endFill();
+    shape.draw();
 
     // Check to see if the shape would render outside of app view
-    if (x - shape.width / 2 < 0 || x + shape.width / 2 > app.view.width) {
-      return;
-    }
+    // if (x - shape.width / 2 < 0 || x + shape.width / 2 > app.view.width) {
+    //   return;
+    // }
 
     // // Fix overlapping To DO
     // for (let i = 0; i < shapesArray.length; i++) {
@@ -128,25 +110,16 @@ const ShapesFactory = (
     //   }
     // }
 
-    const shapeObj = { shape, area: areaOfShape };
     // Shape event
-    shape.eventMode = "static";
-    shape.cursor = "pointer";
-    shape.on("pointertap", () => {
-      removeShape(shapeObj);
-      ui.updateUI(getNumberOfShapes(), calculateArea());
-    });
 
-    shapesArray.push(shapeObj);
+    shapesArray.push(shape);
     ui.updateUI(getNumberOfShapes(), calculateArea());
   };
 
   const calculateArea = () => {
     let sum = 0;
     for (let i = 0; i < shapesArray.length; i++) {
-      if (typeof shapesArray[i].area === "number") {
-        sum += shapesArray[i].area;
-      }
+      sum += shapesArray[i].getAreaOfShape();
     }
     return sum.toFixed(2);
   };
@@ -165,9 +138,9 @@ const ShapesFactory = (
     }
   };
 
-  const removeShape = (shapeObj: { shape: PIXI.Graphics; area: number }) => {
-    app.stage.removeChild(shapeObj.shape);
-    let i = shapesArray.indexOf(shapeObj);
+  const removeShape = (shape: Shape) => {
+    app.stage.removeChild(shape.shape);
+    let i = shapesArray.indexOf(shape);
     if (shapesArray[i]) {
       shapesArray.splice(i, 1);
     }
