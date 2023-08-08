@@ -1,9 +1,10 @@
 import { Shape } from "../shape";
+import ShapeFact from "../shapeFactory";
 
 export class Circle extends Shape {
   radius: number;
-  constructor(x: number, y: number, radius: number) {
-    super(x, y);
+  constructor(x: number, y: number, radius: number, main: ShapeFact) {
+    super(x, y, main);
     this.radius = radius;
   }
 
@@ -12,7 +13,6 @@ export class Circle extends Shape {
     this.shape.drawCircle(0, 0, this.radius);
     this.shape.position.set(this.x, this.y);
     this.shape.endFill();
-    console.log(this.color);
   }
 
   getAreaOfShape(): number {

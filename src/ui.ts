@@ -1,31 +1,30 @@
-import * as PIXI from "pixi.js";
+export default class UI {
+  areaOfCanvas: number;
+  uiBox: HTMLElement;
+  displayNoOfShapes: HTMLElement;
+  displaySurfaceArea: HTMLElement;
+  constructor(areaOfCanvas: number) {
+    this.areaOfCanvas = areaOfCanvas;
+    this.uiBox = document.createElement("div");
+    this.displayNoOfShapes = document.createElement("a");
+    this.displaySurfaceArea = document.createElement("a");
+  }
 
-// App UI
-const UI = (app: PIXI.Application) => {
-  const areaOfCanvas = app.view.width * app.view.height;
+  init() {
+    this.uiBox.classList.add("uiBox");
 
-  // Container
-  const uiBox = document.createElement("div");
-  uiBox.classList.add("uiBox");
+    // Placeholder Text
+    this.displayNoOfShapes.textContent = `No of Shapes: ${0}`;
+    this.displaySurfaceArea.textContent = `Area used ${0} px^2, Total area ${
+      this.areaOfCanvas
+    } px^2`;
 
-  const displayNumberOfShapes = document.createElement("a");
-  const displaySurfaceArea = document.createElement("a");
+    this.uiBox.append(this.displayNoOfShapes, this.displaySurfaceArea);
 
-  // Placeholder Text
-  displayNumberOfShapes.textContent = `No of Shapes: ${0}`;
-  displaySurfaceArea.textContent = `Area used ${0} px^2, Total area ${areaOfCanvas} px^2`;
+    document.body.before(this.uiBox);
+  }
 
-  uiBox.append(displayNumberOfShapes, displaySurfaceArea);
-
-  document.body.before(uiBox);
-
-  // Boiler plate buttons
-  const genButtonBox = (x: {
-    id: string;
-    text: string;
-    value: number;
-    limit: number;
-  }) => {
+  genButtonBox(x: { id: string; text: string; value: number; limit: number }) {
     const box = document.createElement("div");
     const minusButton = document.createElement("button");
     minusButton.textContent = `-1`;
@@ -58,18 +57,12 @@ const UI = (app: PIXI.Application) => {
     box.append(display, buttonBox);
     box.classList.add("controllsWrapper");
     document.body.after(box);
-  };
+  }
 
-  // update main ui
-  const updateUI = (numberOfShapes: number, totalTakenArea: string) => {
-    displayNumberOfShapes.textContent = `No of Shapes: ${numberOfShapes}`;
-    displaySurfaceArea.textContent = `Area used ${totalTakenArea} px^2, Total area ${areaOfCanvas} px^2`;
-  };
+  updateUI(numberOfShapes: number, totalTakenArea: string) {
+    this.displayNoOfShapes.textContent = `No of Shapes: ${numberOfShapes}`;
+    this.displaySurfaceArea.textContent = `Area used ${totalTakenArea} px^2, Total area ${this.areaOfCanvas} px^2`;
+  }
+}
 
-  return {
-    updateUI,
-    genButtonBox,
-  };
-};
-
-export default UI;
+// const areaOfCanvas = app.view.width * app.view.height;

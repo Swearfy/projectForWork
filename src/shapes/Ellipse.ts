@@ -1,10 +1,17 @@
 import { Shape } from "../shape";
+import ShapeFact from "../shapeFactory";
 
 export class Ellipse extends Shape {
   width: number;
   height: number;
-  constructor(x: number, y: number, width: number, height: number) {
-    super(x, y);
+  constructor(
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    main: ShapeFact
+  ) {
+    super(x, y, main);
     this.width = width;
     this.height = height;
   }

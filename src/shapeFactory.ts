@@ -6,80 +6,51 @@ import { Triangle } from "./shapes/Triangle";
 import { Rectangle } from "./shapes/Rectangle";
 import { Polygon } from "./shapes/Polygon";
 import { Ellipse } from "./shapes/Ellipse";
+import { MainApp } from "./main";
+import UI from "./ui";
 
-const ShapesFactory = (
-  app: PIXI.Application,
-  ui: {
-    updateUI: (numberOfShapes: number, totalTakenArea: string) => void;
+export default class ShapeFact {
+  shapesArray: Shape[];
+  shapeList: string[];
+  app: PIXI.Application;
+  ui: UI;
+  constructor(main: MainApp) {
+    this.shapesArray = [];
+    this.shapeList = [
+      "circle",
+      "triangle",
+      "4sides",
+      "5sides",
+      "6sides",
+      "ellipse",
+    ];
+    this.app = main.app;
+    this.ui = main.ui;
   }
-) => {
-  let shapesArray: Shape[] = [];
 
-  const shapeList: string[] = [
-    "circle",
-    "triangle",
-    "4sides",
-    "5sides",
-    "6sides",
-    "ellipse",
-  ];
-
-  const getNumberOfShapes = () => {
-    const numberOfShapes = shapesArray.length;
-    return numberOfShapes;
-  };
-
-  const drawPolygon = (
-    shape: PIXI.Graphics,
-    numberOfSides: number,
-    x: number,
-    y: number
-  ) => {
-    // Define the points for the 5-sided polygon
-    const radius = 25; // Radius of the polygon
-
-    const angleIncrement = (Math.PI * 2) / numberOfSides;
-
-    shape.moveTo(x + radius * Math.cos(0), y + radius * Math.sin(0));
-
-    for (let i = 1; i <= numberOfSides; i++) {
-      const angle = angleIncrement * i;
-      const xPoint = x + radius * Math.cos(angle);
-      const yPoint = y + radius * Math.sin(angle);
-      shape.lineTo(xPoint, yPoint);
-    }
-
-    // Close the polygon
-    shape.lineTo(x + radius * Math.cos(0), y + radius * Math.sin(0));
-  };
-
-  const genShape = (x = Math.random() * app.view.width, y = -100) => {
-    const randomIndex = Math.floor(Math.random() * shapeList.length);
-    let shapeName = "5sides";
-    let shape = new Shape(x, y);
+  genShape(x = Math.random() * this.app.view.width, y = -100) {
+    const randomIndex = Math.floor(Math.random() * this.shapeList.length);
+    let shapeName = this.shapeList[randomIndex];
+    let shape = new Shape(x, y, this);
 
     switch (shapeName) {
       case "circle":
-        shape = new Circle(x, y, 25);
-
+        shape = new Circle(x, y, 25, this);
         break;
       case "triangle":
-        shape = new Triangle(x, y, 25, 25);
+        shape = new Triangle(x, y, 50, 50, this);
         break;
-
       case "4sides":
-        shape = new Rectangle(x, y, 25, 25);
+        shape = new Rectangle(x, y, 50, 50, this);
         break;
       case "5sides":
-        shape = new Polygon(x, y, 5, 25);
-        // shape.shape.drawShape(new PIXI.Polygon());
+        shape = new Polygon(x, y, 5, 25, this);
         break;
       case "6sides":
-        shape = new Polygon(x, y, 6, 25);
-
+        shape = new Polygon(x, y, 6, 25, this);
         break;
       case "ellipse":
-        shape = new Ellipse(x, y, 25, 16);
+        shape = new Ellipse(x, y, 25, 16, this);
         break;
       // case "star":
       //   shape.drawStar(0, 0, 5, 15, 25);
@@ -88,12 +59,16 @@ const ShapesFactory = (
       default:
         break;
     }
+
     shape.draw();
 
     // Check to see if the shape would render outside of app view
-    // if (x - shape.width / 2 < 0 || x + shape.width / 2 > app.view.width) {
-    //   return;
-    // }
+    if (
+      x - shape.shape.width / 2 < 0 ||
+      x + shape.shape.width / 2 > this.app.view.width
+    ) {
+      return;
+    }
 
     // // Fix overlapping To DO
     // for (let i = 0; i < shapesArray.length; i++) {
@@ -112,41 +87,45 @@ const ShapesFactory = (
 
     // Shape event
 
-    shapesArray.push(shape);
-    ui.updateUI(getNumberOfShapes(), calculateArea());
-  };
+    this.shapesArray.push(shape);
+    this.app.stage.addChild(shape.shape);
 
-  const calculateArea = () => {
+    this.ui.updateUI(this.getNumberOfShapes(), this.calculateArea());
+  }
+
+  calculateArea() {
     let sum = 0;
-    for (let i = 0; i < shapesArray.length; i++) {
-      sum += shapesArray[i].getAreaOfShape();
+    for (let i = 0; i < this.shapesArray.length; i++) {
+      sum += this.shapesArray[i].getAreaOfShape();
     }
     return sum.toFixed(2);
-  };
-  const update = (delta: number, gravity: number) => {
-    for (let i = 0; i < shapesArray.length; i++) {
-      const shapeObj = shapesArray[i];
+  }
 
-      app.stage.addChild(shapeObj.shape);
-      shapeObj.shape.y += gravity * delta;
+  getNumberOfShapes() {
+    const numberOfShapes = this.shapesArray.length;
+    return numberOfShapes;
+  }
+
+  removeShape(shape: Shape) {
+    this.app.stage.removeChild(shape.shape);
+    let i = this.shapesArray.indexOf(shape);
+    if (this.shapesArray[i]) {
+      this.shapesArray.splice(i, 1);
+      this.ui.updateUI(this.getNumberOfShapes(), this.calculateArea());
+    }
+  }
+
+  update(delta: number, gravity: number) {
+    for (let i = 0; i < this.shapesArray.length; i++) {
+      const shapeObj = this.shapesArray[i];
+
+      shapeObj.moveShape(gravity, delta);
 
       // Remove shape once out of bound from bottom
-      if (shapeObj.shape.y - shapeObj.shape.height / 2 > app.view.height) {
-        removeShape(shapeObj);
-        ui.updateUI(getNumberOfShapes(), calculateArea());
+      if (shapeObj.shape.y - shapeObj.shape.height / 2 > this.app.view.height) {
+        this.removeShape(shapeObj);
+        // ui.updateUI(this.getNumberOfShapes(), this.calculateArea());
       }
     }
-  };
-
-  const removeShape = (shape: Shape) => {
-    app.stage.removeChild(shape.shape);
-    let i = shapesArray.indexOf(shape);
-    if (shapesArray[i]) {
-      shapesArray.splice(i, 1);
-    }
-  };
-
-  return { update, genShape, getNumberOfShapes };
-};
-
-export default ShapesFactory;
+  }
+}

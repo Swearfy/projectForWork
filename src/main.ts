@@ -3,68 +3,101 @@ import UI from "./ui";
 import ShapesFactory from "./shapeFactory";
 import "./styles/style.scss";
 
-const MainApp = () => {
-  // App
-  const app = new PIXI.Application<HTMLCanvasElement>({
-    width: window.innerWidth,
-    height: (window.innerHeight * 75) / 100,
-    background: "#000000",
-  });
+interface UiDetails {
+  id: string;
+  text: string;
+  value: number;
+  limit: number;
+}
 
-  document.body.appendChild(app.view);
+export class MainApp {
+  width: number;
+  height: number;
+  background: string;
+  app: PIXI.Application<HTMLCanvasElement>;
+  gravityDetails: UiDetails;
+  spawnRate: UiDetails;
+  shapes: ShapesFactory;
+  ui: UI;
 
-  const ui = UI(app);
-  const shapes = ShapesFactory(app, ui);
+  constructor(width: number, height: number) {
+    this.height = height;
+    this.width = width;
+    this.background = "#000000";
+    this.app = new PIXI.Application<HTMLCanvasElement>({
+      width: this.width,
+      height: this.height,
+      background: this.background,
+    });
 
-  // Background init
-  const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
-  bg.width = app.view.width;
-  bg.height = app.view.height;
-  bg.tint = "#000000";
+    this.gravityDetails = {
+      id: "gravity",
+      text: "Current Gravity",
+      value: 1,
+      limit: 0,
+    };
+    this.spawnRate = {
+      id: "spawnRate",
+      text: "Current Spawn Rate per second",
+      value: 1,
+      limit: 0,
+    };
 
-  // Background event
-  bg.eventMode = "static";
-  bg.cursor = "pointer";
-  bg.on("pointerdown", (e) => {
-    shapes.genShape(e.clientX, e.clientY - 50);
-  });
+    this.ui = new UI(this.app.view.width * this.app.view.height);
+    this.shapes = new ShapesFactory(this);
+  }
 
-  app.stage.addChild(bg);
+  init() {
+    document.body.append(this.app.view);
+    this.backgroundInit();
+    this.ui.init();
+    this.ui.genButtonBox(this.gravityDetails);
+    this.ui.genButtonBox(this.spawnRate);
+    this.animate();
+  }
 
-  const gravityDetails = {
-    id: "gravity",
-    text: "Current Gravity",
-    value: 1,
-    limit: 0,
-  };
-  const spawnRate = {
-    id: "spawnRate",
-    text: "Current Spawn Rate per second",
-    value: 1,
-    limit: 0,
-  };
+  backgroundInit() {
+    const bg = new PIXI.Sprite(PIXI.Texture.WHITE);
+    bg.width = this.app.view.width;
+    bg.height = this.app.view.height;
+    bg.tint = "#000000";
 
-  ui.genButtonBox(gravityDetails);
-  ui.genButtonBox(spawnRate);
+    // Background event
+    bg.eventMode = "static";
+    bg.cursor = "pointer";
+    bg.on("pointerdown", (e) => {
+      this.shapes.genShape(e.clientX, e.clientY - 50);
+    });
 
-  let passedTime = 0;
-  // Main Loop
-  app.ticker.add((delta) => {
-    let gravity = gravityDetails.value;
-    let genRate = spawnRate.value;
+    this.app.stage.addChild(bg);
+  }
 
-    if (genRate >= 1) {
-      if (Date.now() > passedTime) {
-        passedTime = Date.now() + 1000 / genRate;
+  animate() {
+    let passedTime = 0;
 
-        if (gravity > 0) {
-          shapes.genShape();
+    this.app.ticker.add((delta) => {
+      let gravity = this.gravityDetails.value;
+      let genRate = this.spawnRate.value;
+
+      if (genRate >= 1) {
+        if (Date.now() > passedTime) {
+          passedTime = Date.now() + 1000 / genRate;
+
+          if (gravity > 0) {
+            this.shapes.genShape();
+          }
         }
       }
-    }
 
-    shapes.update(delta, gravity);
-  });
-};
+      this.shapes.update(delta, gravity);
+    });
+  }
+}
 
-MainApp();
+const app = new MainApp(window.innerWidth, (window.innerHeight * 75) / 100);
+app.init();
+// const ui = UI(app);
+// const shapes = ShapesFactory(app, ui);
+
+// ui.genButtonBox(gravityDetails);
+// ui.genButtonBox(spawnRate);
